@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   ArrowDownToLine,
   ArrowLeft,
@@ -39,13 +40,9 @@ import {
   WalletCards,
 } from 'lucide-react'
 import AssetScene, { type AssetSceneKind } from './asset-scenes'
+import { pathForScreen, type RwaScreen } from '@/lib/rwa-routes'
 
-type Screen =
-  | 'home' | 'invest' | 'portfolio' | 'wallet' | 'ai' | 'profile'
-  | 'rwa-detail' | 'compute-detail' | 'stock-detail' | 'prediction-detail'
-  | 'order-review' | 'order-success' | 'deposit' | 'withdraw' | 'transfer'
-  | 'activity' | 'asset-detail' | 'position-detail' | 'ai-plan'
-  | 'notifications' | 'kyc' | 'security' | 'referral' | 'records' | 'support' | 'settings'
+type Screen = RwaScreen
 type OrderAsset = 'compute' | 'rwa' | 'stocks' | 'prediction'
 type PrimaryScreen = 'home' | 'invest' | 'portfolio' | 'wallet'
 type InvestCategory = 'All' | 'Compute' | 'RWA' | 'Stocks' | 'Prediction'
@@ -213,10 +210,21 @@ function HomeScreen({ go, notify }: { go: (screen: Screen) => void; notify: (mes
 function InvestScreen({ go, notify }: { go: (screen: Screen) => void; notify: (message: string) => void }) {
   const [category, setCategory] = useState<InvestCategory>('All')
   const filtered = useMemo(() => category === 'All' ? products.slice(1) : products.filter((item) => item.category === category && item.category !== 'Compute'), [category])
+  const marketStats = [
+    ['USDT balance', '12,540.20', '+2,000 in 24h'],
+    ['Open capacity', '4 assets', 'USDT settled'],
+    ['AI signal', 'Positive', 'Compute leads'],
+  ]
   return (
     <section className="screen invest-screen">
       <TopBar onProfile={() => go('profile')} onNotifications={() => go('notifications')} />
       <h1 className="page-title">Invest</h1>
+
+      <div className="market-strip">
+        {marketStats.map(([label, value, detail]) => (
+          <span key={label} className="glass"><small>{label}</small><b>{value}</b><em>{detail}</em></span>
+        ))}
+      </div>
 
       <div className="segmented" role="tablist" aria-label="Investment categories">
         {categories.map((item) => <button key={item} role="tab" type="button" className={category === item ? 'is-active' : ''} aria-selected={category === item} onClick={() => setCategory(item)}>{item}</button>)}
@@ -237,10 +245,15 @@ function InvestScreen({ go, notify }: { go: (screen: Screen) => void; notify: (m
         {filtered.map((product) => (
           <button key={product.category} type="button" className="product-card glass" onClick={() => go(detailRoute(productAsset[product.category]))}>
             <AssetScene kind={product.kind} />
-            <span className="product-card__copy"><b>{product.title}</b><small className={`risk risk--${product.risk.split(' ')[0].toLowerCase()}`}>{product.risk}</small></span>
+            <span className="product-card__copy"><b>{product.title}</b><small>{product.subtitle}</small><small className={`risk risk--${product.risk.split(' ')[0].toLowerCase()}`}>{product.risk}</small></span>
             <ChevronRight size={24} strokeWidth={1.35} />
           </button>
         ))}
+      </div>
+      <div className="section-title"><h2>Execution desk</h2><span /></div>
+      <div className="desk-stack glass">
+        <button type="button" onClick={() => notify('USDT routing checked')}><WalletCards size={20} /><span><b>USDT routing</b><small>TRON, Ethereum and Arbitrum balances are ready for allocation.</small></span><ChevronRight size={18} /></button>
+        <button type="button" onClick={() => go('ai')}><Sparkles size={20} /><span><b>AI pre-trade check</b><small>Review concentration, liquidity and product risk before investing.</small></span><ChevronRight size={18} /></button>
       </div>
     </section>
   )
@@ -273,6 +286,16 @@ function RwaDetailScreen({ go, notify, openOrder }: { go: (screen: Screen) => vo
         <button type="button" onClick={() => notify('Asset overview opened')}><span><Landmark size={22} /></span><span><b>Asset overview</b><small>Operational solar assets with contracted cash flow.</small></span><ChevronRight size={22} /></button>
         <button type="button" onClick={() => notify('Offering memorandum opened')}><span><FileText size={22} /></span><span><b>Offering memorandum</b><small>Structure, fees, exit terms and risk factors.</small></span><ChevronRight size={22} /></button>
       </div>
+      <div className="deal-panel glass">
+        <div><small>Subscription fee</small><b>0.80%</b></div>
+        <div><small>Revenue cycle</small><b>Monthly</b></div>
+        <div><small>Exit window</small><b>Quarterly</b></div>
+      </div>
+      <div className="terms-list">
+        <span><CircleCheck size={16} />KYC required before first allocation</span>
+        <span><CircleCheck size={16} />USDT settlement to platform MPC wallet</span>
+        <span><AlertTriangle size={16} />Projected yield is not guaranteed</span>
+      </div>
       <button className="invest-cta" type="button" onClick={() => openOrder('rwa')}><CircleDollarSign size={25} />Invest with USDT</button>
     </section>
   )
@@ -294,11 +317,21 @@ function PortfolioScreen({ go, notify }: { go: (screen: Screen) => void; notify:
         <AssetScene kind="portfolio" />
       </div>
       <div className="portfolio-score"><span><small>AI Portfolio Score</small><b>87</b></span><div><i style={{ width: '87%' }} /></div><p>Balanced exposure with moderate liquidity risk.</p></div>
+      <div className="portfolio-metrics">
+        <span className="glass"><small>Today</small><b>+328.40</b><em>USDT</em></span>
+        <span className="glass"><small>30 days</small><b>+1,284.60</b><em>USDT</em></span>
+        <span className="glass"><small>Cash</small><b>10%</b><em>reserve</em></span>
+      </div>
       <div className="section-title"><h2>Allocation</h2><button type="button" onClick={() => go('ai')}>Ask AI</button></div>
       <div className="allocation-list glass">
         {allocations.map(([name, percent, value], index) => <button type="button" key={name} onClick={() => go('position-detail')}><i className={`allocation-dot allocation-dot--${index}`} /><span><b>{name}</b><small>{value}</small></span><strong>{percent}</strong><ChevronRight size={18} /></button>)}
       </div>
       <button className="rebalance-row glass" type="button" onClick={() => go('ai-plan')}><Sparkles size={21} /><span><b>AI Rebalance</b><small>One opportunity needs your attention.</small></span><ChevronRight size={21} /></button>
+      <div className="risk-monitor glass">
+        <span><ShieldCheck size={20} /><b>Risk engine</b></span>
+        <p>Compute utilization is strong. RWA lockup is within target. Stock concentration is approaching the preferred limit.</p>
+        <div><i style={{ width: '68%' }} /></div>
+      </div>
     </section>
   )
 }
@@ -561,11 +594,15 @@ function AccountFlowScreen({ kind, go, notify }: { kind: 'kyc' | 'security' | 'r
   )
 }
 
-export default function RwaH5() {
-  const [screen, setScreen] = useState<Screen>('home')
+export default function RwaH5({ initialScreen = 'home' }: { initialScreen?: Screen }) {
+  const router = useRouter()
+  const [screen, setScreen] = useState<Screen>(initialScreen)
   const [toast, setToast] = useState<string | null>(null)
   const [orderAsset, setOrderAsset] = useState<OrderAsset>('compute')
   const [orderAmount, setOrderAmount] = useState(1000)
+  useEffect(() => {
+    setScreen(initialScreen)
+  }, [initialScreen])
   useEffect(() => {
     const reset = () => {
       document.documentElement.scrollTop = 0
@@ -580,6 +617,8 @@ export default function RwaH5() {
   const go = (next: Screen) => {
     ;(document.activeElement as HTMLElement | null)?.blur()
     setScreen(next)
+    const nextPath = pathForScreen(next)
+    if (window.location.pathname !== nextPath) router.push(nextPath)
     const reset = () => window.scrollTo(0, 0)
     window.setTimeout(reset, 0)
     window.setTimeout(reset, 160)
@@ -596,7 +635,9 @@ export default function RwaH5() {
   }
   const showDock = !['rwa-detail', 'compute-detail', 'stock-detail', 'prediction-detail', 'order-review', 'order-success', 'deposit', 'withdraw', 'transfer', 'activity', 'asset-detail', 'position-detail', 'ai-plan', 'notifications', 'kyc', 'security', 'referral', 'records', 'support', 'settings'].includes(screen)
   return (
-    <main className="rwa-shell">
+    <>
+      <a className="skip-link" href="#main-content">Skip to main content</a>
+      <main id="main-content" className="rwa-shell" tabIndex={-1}>
       <div className={`rwa-mobile ${showDock ? '' : 'rwa-mobile--detail'}`} data-screen={screen}>
         {screen === 'home' && <HomeScreen go={go} notify={notify} />}
         {screen === 'invest' && <InvestScreen go={go} notify={notify} />}
@@ -627,6 +668,7 @@ export default function RwaH5() {
         {showDock && <BottomDock screen={screen} setScreen={go} />}
       </div>
       {toast && <div className="toast" role="status"><Check size={17} />{toast}</div>}
-    </main>
+      </main>
+    </>
   )
 }

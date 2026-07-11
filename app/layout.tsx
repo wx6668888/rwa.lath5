@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import PwaRegister from '@/components/pwa-register'
+import { designTokens } from '@/lib/design-tokens'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -28,7 +29,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   colorScheme: 'dark',
-  themeColor: '#000000',
+  themeColor: designTokens.color.canvas,
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,

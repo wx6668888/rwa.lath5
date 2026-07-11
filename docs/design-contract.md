@@ -11,7 +11,8 @@ Rebuild the mobile H5/PWA screens so they match the supplied Home, Invest, RWA D
 | Four supplied mobile reference images | provided | Composition, density, material, navigation and 3D art direction |
 | Existing H5 at localhost | observed | Current component structure and visual gaps |
 | Product/development specification | provided | Product scope, USDT-only funding, networks, KYC and platform constraints |
-| Portfolio replacement for Profile | user decision | Primary navigation |
+| Portfolio replacement for Profile | confirmed user decision | Primary navigation |
+| AI as independent center dock action | confirmed user decision | Primary action and navigation hierarchy |
 | Core screens use interactive 3D | user decision | Asset and performance architecture |
 
 ## Keep / Change / Do not copy
@@ -39,6 +40,7 @@ Use a single visual stance: black precision finance with platinum-and-glass mech
 - Home, Invest, RWA Detail and Wallet preserve the reference composition.
 - Dock has visible thickness, rim, blur and restrained glow.
 - No Profile tab; Portfolio is present and profile remains available from the avatar.
+- AI is the independent circular center action between the four primary dock destinations.
 - Core art is animated WebGL or a matching fallback, not a flat generic illustration.
 - The 390px and 430px layouts have no overlap with safe areas or the fixed dock.
 - There are no encoding artifacts, watermarks, unreadable labels or unsupported product promises.
