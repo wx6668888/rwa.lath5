@@ -1,12 +1,13 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { createCipheriv, createDecipheriv, createHmac, randomBytes } from 'node:crypto'
+import { createCipheriv, createDecipheriv, createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
 import { keccak_256 } from '@noble/hashes/sha3'
 import { secp256k1 } from '@noble/curves/secp256k1'
 import { IDENTITY_ERROR_CODES } from './identity.errors'
 
 const KEY_VERSION = 1
 const NONCE_TTL_MS = 5 * 60 * 1000
+const BASE32_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
 
 interface ChallengeRecord {
   nonce: string
@@ -40,6 +41,10 @@ export class IdentityCrypto {
     return createHmac('sha256', this.hmacKey).update(token).digest()
   }
 
+  hmac(value: string): Buffer {
+    return createHmac('sha256', this.hmacKey).update(value).digest()
+  }
+
   encrypt(plain: string): { ciphertext: Buffer; keyVersion: number } {
     const iv = randomBytes(12)
     const cipher = createCipheriv('aes-256-gcm', this.encKey, iv)
@@ -63,6 +68,56 @@ export class IdentityCrypto {
 
   generateNonce(): string {
     return `rwa-auth.${randomBytes(20).toString('hex')}`
+  }
+
+  /** Generates a 160-bit Base32 secret suitable for RFC 6238 TOTP enrollment. */
+  generateTotpSecret(): string {
+    const bytes = randomBytes(20)
+    let output = ''
+    let buffer = 0
+    let bits = 0
+    for (const byte of bytes) {
+      buffer = (buffer << 8) | byte
+      bits += 8
+      while (bits >= 5) {
+        output += BASE32_ALPHABET[(buffer >>> (bits - 5)) & 31]
+        bits -= 5
+      }
+    }
+    if (bits > 0) output += BASE32_ALPHABET[(buffer << (5 - bits)) & 31]
+    return output
+  }
+
+  verifyTotp(secret: string, code: string, now = Date.now()): boolean {
+    if (!/^\d{6}$/.test(code)) return false
+    for (const offset of [-1, 0, 1]) {
+      const expected = this.totpCode(secret, Math.floor(now / 30_000) + offset)
+      if (timingSafeEqual(Buffer.from(expected), Buffer.from(code))) return true
+    }
+    return false
+  }
+
+  private totpCode(secret: string, counter: number): string {
+    const normalized = secret.replace(/\s|=/g, '').toUpperCase()
+    let buffer = 0
+    let bits = 0
+    const bytes: number[] = []
+    for (const char of normalized) {
+      const index = BASE32_ALPHABET.indexOf(char)
+      if (index < 0) throw new Error('TOTP secret is not valid Base32')
+      buffer = (buffer << 5) | index
+      bits += 5
+      if (bits >= 8) {
+        bytes.push((buffer >>> (bits - 8)) & 255)
+        bits -= 8
+      }
+    }
+    const counterBytes = Buffer.alloc(8)
+    counterBytes.writeBigUInt64BE(BigInt(counter))
+    const digest = createHmac('sha1', Buffer.from(bytes)).update(counterBytes).digest()
+    const offset = digest[digest.length - 1] & 15
+    const value = ((digest[offset] & 127) << 24) | (digest[offset + 1] << 16) | (digest[offset + 2] << 8) | digest[offset + 3]
+    return String(value % 1_000_000).padStart(6, '0')
   }
 
   /** Signed, tamper-evident state token (used for email verification / recovery links). */
