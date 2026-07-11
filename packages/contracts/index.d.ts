@@ -1,0 +1,3 @@
+export declare const API_ERROR_CODES: Readonly<{
+  DATABASE_UNAVAILABLE: 'DATABASE_UNAVAILABLE'
+}>

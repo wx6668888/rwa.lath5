@@ -7,12 +7,15 @@ __v0_jsx-dev-runtime.ts
 .vercel/
 
 # Environment variables
+.env
+.env.test
 .env*.local
 
 # Build output / Cloudflare artifacts
 node_modules
 .DS_Store
 .next/
+dist/
 .wrangler/
 out/
 .open-next/

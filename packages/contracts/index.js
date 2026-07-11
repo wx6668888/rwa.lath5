@@ -1,0 +1,5 @@
+const API_ERROR_CODES = Object.freeze({
+  DATABASE_UNAVAILABLE: 'DATABASE_UNAVAILABLE',
+})
+
+module.exports = { API_ERROR_CODES }
