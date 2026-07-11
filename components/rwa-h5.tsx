@@ -66,18 +66,13 @@ const products: Array<{
 ]
 
 const opportunityArtwork: Record<AssetSceneKind, string> = {
-  compute: '/media/opportunity-source/compute.png',
-  solar: '/media/opportunity-source/rwa.png',
+  compute: '/media/opportunity-source/compute-curated.png',
+  solar: '/media/opportunity-source/rwa-curated.png',
   stocks: '/media/opportunity-source/stocks.png',
   prediction: '/media/opportunity-source/prediction.png',
   wallet: '/media/opportunity-source/compute.png',
   portfolio: '/media/opportunity-source/stocks.png',
   'solar-dome': '/media/opportunity-source/rwa.png',
-}
-
-const opportunityVideo: Partial<Record<AssetSceneKind, string>> = {
-  compute: '/media/opportunities/compute.mp4',
-  solar: '/media/opportunities/rwa.mp4',
 }
 
 const productAsset: Record<Exclude<InvestCategory, 'All'>, OrderAsset> = {
@@ -155,9 +150,15 @@ function OrbitBadge({ className, icon: Icon, label, value }: { className: string
 }
 
 function OpportunityMedia({ kind }: { kind: AssetSceneKind }) {
-  const video = opportunityVideo[kind]
-  if (video) return <span className="opportunity-media"><video src={video} poster={opportunityArtwork[kind]} autoPlay muted loop playsInline preload="metadata" aria-hidden="true" /></span>
   return <span className="opportunity-media"><img src={opportunityArtwork[kind]} alt="" /></span>
+}
+
+function DetailProductVisual({ asset, scene }: { asset: OrderAsset; scene: AssetSceneKind }) {
+  const video = asset === 'rwa' ? '/media/opportunities/rwa.mp4' : asset === 'compute' ? '/media/opportunities/compute.mp4' : null
+  if (video) {
+    return <video className="detail-product-video" src={video} autoPlay muted loop playsInline preload="metadata" aria-label={`${asset} product visual`} />
+  }
+  return <AssetScene kind={scene} />
 }
 
 function HomeScreen({ go, notify }: { go: (screen: Screen) => void; notify: (message: string) => void }) {
@@ -257,7 +258,7 @@ function RwaDetailScreen({ go, notify, openOrder }: { go: (screen: Screen) => vo
         <Brand compact />
         <button className="round-control" type="button" aria-label="Bookmark" onClick={() => notify('Project saved')}><Bookmark size={21} strokeWidth={1.5} /></button>
       </div>
-      <div className="detail-hero"><AssetScene kind="solar-dome" /></div>
+      <div className="detail-hero"><DetailProductVisual asset="rwa" scene="solar-dome" /></div>
       <div className="detail-identity">
         <h1>Solar Income Project</h1>
         <p><span className="country-flag" role="img" aria-label="United States flag" /> United States</p>
@@ -390,7 +391,7 @@ function AssetDetailScreen({ asset, go, openOrder, notify }: { asset: Exclude<Or
   return (
     <section className="screen asset-detail-screen has-fixed-cta">
       <DetailHeader go={go} back="invest" />
-      <div className="asset-detail-hero"><AssetScene kind={detail.scene} /></div>
+      <div className="asset-detail-hero"><DetailProductVisual asset={asset} scene={detail.scene} /></div>
       <div className="asset-detail-copy">
         <p>{detail.overline}</p><h1>{detail.title}</h1><span><Network size={15} />{detail.location}</span>
       </div>
