@@ -23,7 +23,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.8.0
       - uses: actions/setup-node@v6
@@ -61,7 +61,7 @@ jobs:
       ADMIN_DATABASE_URL: postgresql://rwa:ci-only-password@127.0.0.1:5432/rwa_lat_test
     steps:
       - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.8.0
       - uses: actions/setup-node@v6
@@ -84,7 +84,7 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.8.0
       - uses: actions/setup-node@v6
@@ -111,7 +111,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 11.8.0
       - uses: actions/setup-node@v6
